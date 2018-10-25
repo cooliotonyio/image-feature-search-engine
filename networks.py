@@ -1,27 +1,37 @@
 import torch.nn as nn
 import torch.nn.functional as F
-
+import torch
+import torchvision.models as models
 
 class EmbeddingNet(nn.Module):
-    def __init__(self):
+    def __init__(self, resnet = None):
         super(EmbeddingNet, self).__init__()
-        self.convnet = nn.Sequential(nn.Conv2d(3, 32, 5), nn.PReLU(),
-                                     nn.MaxPool2d(2, stride=2),
-                                     nn.Conv2d(32, 64, 5), nn.PReLU(),
-                                     nn.MaxPool2d(2, stride=2))
+        if resnet is None:
+            resnet = models.resnet18(pretrained=True)
+            
+        self.resnet = resnet
+        self.resnet_layer = self.resnet._modules.get('avgpool')
+        self.resnet.eval()
 
-        self.fc = nn.Sequential(nn.Linear(64 * 7 * 7, 256),
+        self.fc = nn.Sequential(nn.Linear(64 * 8, 256),
                                 nn.PReLU(),
                                 nn.Linear(256, 256),
                                 nn.PReLU(),
                                 nn.Linear(256, 2)
                                 )
-
     def forward(self, x):
-        output = self.convnet(x)
-        output = output.view(output.size()[0], -1)
+        output = self.get_resnet_embedding(x)
         output = self.fc(output)
         return output
+    
+    def get_resnet_embedding(self, x):
+        embedding = torch.cuda.FloatTensor(x.shape[0],512,1,1).fill_(0)
+        def copy(m, i, o):
+            embedding.copy_(o.data)
+        hook = self.resnet_layer.register_forward_hook(copy)
+        self.resnet(x)
+        hook.remove()
+        return embedding.view(embedding.size()[0], -1) 
 
     def get_embedding(self, x):
         return self.forward(x)
@@ -81,7 +91,7 @@ class TripletNet(nn.Module):
         output1 = self.embedding_net(x1)
         output2 = self.embedding_net(x2)
         output3 = self.embedding_net(x3)
-        return output1, output2, output3
+        return output1,output2, output3
 
     def get_embedding(self, x):
         return self.embedding_net(x)
