@@ -44,9 +44,9 @@ class SearchEngine():
                 data = tuple(d.cuda() for d in data)
                 if target is not None:
                     target = target.cuda()
-            outputs = self.embedding_net.get_embedding(*data)
-            outputs = binarize(outputs, threshold=threshold)
-            yield batch_idx, outputs
+            embeddings = self.embedding_net.get_embedding(*data)
+            embeddings = binarize(embeddings, threshold=threshold)
+            yield batch_idx, embeddings, target
     
     def update_index(self, embeddings):
         assert self.index.is_trained
@@ -60,44 +60,49 @@ class SearchEngine():
         if threshold == None:
             threshold = self.threshold
 
-        for batch_idx, outputs in self.featurize_and_binarize_data(data_loader, threshold):
+        for batch_idx, embeddings, target in self.featurize_and_binarize_data(data_loader, threshold):
             if verbose and not (batch_idx % step_size):
                 print("Batch {} of {}".format(batch_idx,len(data_loader)))
             if save_embeddings:
                 filename = "{}/batch_{}.npy".format(self.save_directory, batch_idx)
-                np.save(filename, outputs)
-            self.update_index(outputs)
+                np.save(filename, embeddings)
+            self.update_index(embeddings)
         if verbose:
             print("Finished fitting data.")
 
-    def get_binarized_embedding(self, target, threshold):
-        embedding = self.embedding_net.get_embedding(target).cpu().numpy()
+    def get_binarized_embedding(self, data, threshold):
+        if not type(data) in (tuple, list):
+            data = (data,)
+        if self.cuda:
+            data = tuple(d.cuda() for d in data)
+        embedding = self.embedding_net.get_embedding(*data)
         embedding = binarize(embedding, threshold)
         return embedding
 
 
-    def search(self, target, n=5, threshold=None, verbose=False):
+    def search(self, data, n=5, threshold=None, verbose=False):
         if threshold is None:
             threshold = self.threshold
 
-        embedding = self.get_binarized_embedding(target, threshold = threshold)
-        idx, distances = self.index.search(embedding, n)
+        embedding = self.get_binarized_embedding(data, threshold = threshold)
+        distances, idx = self.index.search(embedding, n)
             
         if verbose:
             print("Median distance: {}".format(np.median(distances)))
             print("Mean distance: {}".format(np.mean(distances)))
         
-        plt.figure()
-        plt.title("Search Query: Index {}".format(test_idx))
-        plt.imshow(data_untransformed[test_idx][0])
+        return distances, idx
         
-        for i in range(len(results)):
-            plt.figure()
-            plt.title("Search Result {}".format(i+1))
-            plt.ylabel(data.classes[results[i][1]])
-            plt.xlabel(distances[0][i])
-            plt.imshow(results[i][0])
+    def search_and_display(self, ):
+        pass
         
-
-    
-
+        # plt.figure()
+        # plt.title("Search Query: Index {}".format(test_idx))
+        # plt.imshow(data_untransformed[test_idx][0])
+        
+        # for i in range(len(results)):
+        #     plt.figure()
+        #     plt.title("Search Result {}".format(i+1))
+        #     plt.ylabel(data.classes[results[i][1]])
+        #     plt.xlabel(distances[0][i])
+        #     plt.imshow(results[i][0])
