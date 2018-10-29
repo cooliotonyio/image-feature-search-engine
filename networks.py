@@ -3,6 +3,26 @@ import torch.nn.functional as F
 import torch
 import torchvision.models as models
 
+class ResNet(nn.Module):
+    def __init__(self):
+        self.net = models.renet18(pretrained=True)
+        self.penult_layer = self.resnet._modules.get('avgpool')
+        self.resnet.eval()
+    
+    def forward(self, x):
+        output = self.get_embedding(self, x):
+        return output
+    
+    def get_embedding(self, x):
+        embedding = torch.cuda.FloatTensor(x.shape[0], 512, 1, 1).fill_(0)
+        def copy(m, i ,o):
+            embedding.copy_(o.data)
+        hook = self.penult_layer.register_forward_hook(copy)
+        self.net(x)
+        hook.remove()
+        return embedding.view(embedding.size()[0], -1)
+
+
 class EmbeddingNet(nn.Module):
     def __init__(self, resnet = None):
         super(EmbeddingNet, self).__init__()
@@ -23,6 +43,9 @@ class EmbeddingNet(nn.Module):
         output = self.get_resnet_embedding(x)
         output = self.fc(output)
         return output
+
+    def get_embedding(self, x):
+        return self.forward(x)
     
     def get_resnet_embedding(self, x):
         embedding = torch.cuda.FloatTensor(x.shape[0],512,1,1).fill_(0)
@@ -31,11 +54,7 @@ class EmbeddingNet(nn.Module):
         hook = self.resnet_layer.register_forward_hook(copy)
         self.resnet(x)
         hook.remove()
-        return embedding.view(embedding.size()[0], -1) 
-
-    def get_embedding(self, x):
-        return self.forward(x)
-
+        return embedding.view(embedding.size()[0], -1)
 
 class EmbeddingNetL2(EmbeddingNet):
     def __init__(self):
