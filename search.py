@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 import torchvision.models as models
 from sklearn.preprocessing import binarize
 from networks import ResNet
@@ -47,7 +48,7 @@ class SearchEngine():
             outputs = binarize(outputs, threshold=threshold)
             yield batch_idx, outputs
     
-    def update_index(self, embeddings)
+    def update_index(self, embeddings):
         assert self.index.is_trained
         self.index.add(embeddings)
 
@@ -60,8 +61,8 @@ class SearchEngine():
             threshold = self.threshold
 
         for batch_idx, outputs in self.featurize_and_binarize_data(data_loader, threshold):
-            if verbose and not (batch_idx % step):
-                print("Batch {}".format(batch_idx) of len(data_loader))
+            if verbose and not (batch_idx % step_size):
+                print("Batch {} of {}".format(batch_idx,len(data_loader)))
             if save_embeddings:
                 filename = "{}/batch_{}.npy".format(self.save_directory, batch_idx)
                 np.save(filename, outputs)

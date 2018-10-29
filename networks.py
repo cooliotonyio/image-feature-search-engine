@@ -5,12 +5,13 @@ import torchvision.models as models
 
 class ResNet(nn.Module):
     def __init__(self):
-        self.net = models.renet18(pretrained=True)
-        self.penult_layer = self.resnet._modules.get('avgpool')
-        self.resnet.eval()
+        super(ResNet, self).__init__()
+        self.net = models.resnet18(pretrained=True)
+        self.penult_layer = self.net._modules.get('avgpool')
+        self.net.eval()
     
     def forward(self, x):
-        output = self.get_embedding(self, x):
+        output = self.get_embedding(self, x)
         return output
     
     def get_embedding(self, x):

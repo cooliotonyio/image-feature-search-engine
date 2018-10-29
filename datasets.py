@@ -66,9 +66,6 @@ class SiameseNusWideDataset(Dataset):
             img1 = self.test_data[self.test_pairs[index][0]]
             img2 = self.test_data[self.test_pairs[index][1]]
             target = self.test_pairs[index][2]
-
-        img1 = Image.fromarray(img1.numpy(), mode='RGB')
-        img2 = Image.fromarray(img2.numpy(), mode='RGB')
         if self.transform is not None:
             img1 = self.transform(img1)
             img2 = self.transform(img2)
@@ -80,7 +77,7 @@ class SiameseNusWideDataset(Dataset):
         else:
             return len(self.test_dataset)
         
-class TripletNusWide(Dataset):
+class TripletNusWideDataset(Dataset):
     """
     Train: For each sample (anchor) randomly chooses a positive and negative samples
     Test: Creates fixed triplets for testing
@@ -110,10 +107,10 @@ class TripletNusWide(Dataset):
             random_state = np.random.RandomState(29)
 
             triplets = [[i,
-                         random_state.choice(self.label_to_indices[self.test_labels[i].item()]),
+                         random_state.choice(self.label_to_indices[self.test_labels[i]]),
                          random_state.choice(self.label_to_indices[
                                                  np.random.choice(
-                                                     list(self.labels_set - set([self.test_labels[i].item()]))
+                                                     list(self.labels_set - set([self.test_labels[i]]))
                                                  )
                                              ])
                          ]
@@ -135,9 +132,6 @@ class TripletNusWide(Dataset):
             img2 = self.test_data[self.test_triplets[index][1]]
             img3 = self.test_data[self.test_triplets[index][2]]
 
-        img1 = Image.fromarray(img1.numpy(), mode='RGB')
-        img2 = Image.fromarray(img2.numpy(), mode='RGB')
-        img3 = Image.fromarray(img3.numpy(), mode='RGB')
         if self.transform is not None:
             img1 = self.transform(img1)
             img2 = self.transform(img2)
