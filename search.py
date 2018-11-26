@@ -72,16 +72,31 @@ class SearchEngine():
             loader = self.load_embeddings():
         else:
             loader = self.featurize_and_binarize_data(data_loader, threshold)
+            
+        num_batches = len(data_loader)
+        batch_magnitude = len(str(num_batches))
 
         for batch_idx, embeddings, target in loader:
             if verbose and not (batch_idx % step_size):
-                print("Batch {} of {}".format(batch_idx,len(data_loader)))
+                print("Batch {} of {}".format(batch_idx, num_batches))
             if save_embeddings:
-                filename = "{}/batch_{}.npy".format(self.save_directory, batch_idx)
-                np.save(filename, embeddings)
+                filename = "batch_{}.npy".format(str(batch_idx).zfill(batch_magnitude))
+                self.save_batch(embeddings, filename)
             self.update_index(embeddings)
         if verbose:
             print("Finished fitting data.")
+        
+    def save_batch(self, batch, filename):
+        path = "{}/{}".format(self.save_directory, filename)
+        np.save(path, np.packbits(batch.astype(bool)))
+                
+    def load_batch(self, batch_idx):
+        raise NotImplementedError
+        batch = None
+        batch = np.unpackbits(batch)
+        dims, rows = self.embedding_dimension, len(batch) // self.embedding_dimension
+        return batch.reshape(rows, dims)
+        
 
     def get_binarized_embedding(self, data, threshold):
         if not type(data) in (tuple, list):
