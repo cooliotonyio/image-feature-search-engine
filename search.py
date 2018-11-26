@@ -51,16 +51,29 @@ class SearchEngine():
     def update_index(self, embeddings):
         assert self.index.is_trained
         self.index.add(embeddings)
+    
+    def load_embeddings(self):
+        files = []
+        for idx in range(files):
+            #unpack(file)
+            f = 
+            yield idx, embeddings, None
 
-    def fit(self, data_loader, verbose = False, step_size = 100, threshold = None, save_embeddings = False):
+    def fit(self, data_loader, verbose = False, step_size = 100, threshold = None, save_embeddings = False, load_embeddings = False):
         if save_embeddings and not self.save_directory:
             print("Need to set save_directory of SearchEngine")
             return
 
         if threshold == None:
             threshold = self.threshold
+        
+        if load_embeddings:
+            save_embeddings = False
+            loader = self.load_embeddings():
+        else:
+            loader = self.featurize_and_binarize_data(data_loader, threshold)
 
-        for batch_idx, embeddings, target in self.featurize_and_binarize_data(data_loader, threshold):
+        for batch_idx, embeddings, target in loader:
             if verbose and not (batch_idx % step_size):
                 print("Batch {} of {}".format(batch_idx,len(data_loader)))
             if save_embeddings:
