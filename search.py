@@ -114,7 +114,7 @@ class SearchEngine():
 
     def get_query_embedding(self, filename):
         image = PIL.Image.open(filename).convert('RGB')
-        tensor = transform(image)[None,:,:,:]
+        tensor = self.transform(image)[None,:,:,:]
         embedding = self.get_binarized_embedding(tensor, threshold = self.threshold)
     
     def query(self, filename, n=10, verbose = False):
