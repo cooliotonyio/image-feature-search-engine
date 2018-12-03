@@ -5,6 +5,7 @@ from sklearn.preprocessing import binarize
 from networks import ResNet
 import PIL
 import faiss
+import os
 
 class SearchEngine():
     '''
@@ -60,7 +61,7 @@ class SearchEngine():
             embeddings = self.load_batch(filenames[batch_idx])
             yield batch_idx, embeddings, None
 
-    def fit(self, data_loader, verbose = False, step_size = 100, threshold = None, save_embeddings = False, load_embeddings = False):
+    def fit(self, data_loader=None, verbose = False, step_size = 100, threshold = None, save_embeddings = False, load_embeddings = False):
         if save_embeddings and not self.save_directory:
             print("Need to set save_directory of SearchEngine")
             return
@@ -72,6 +73,9 @@ class SearchEngine():
             save_embeddings = False
             loader = self.load_embeddings()
         else:
+            if not data_loader:
+                print("Need to provide data_loader")
+                return
             loader = self.featurize_and_binarize_data(data_loader, threshold)
             
         num_batches = len(data_loader)
@@ -91,10 +95,9 @@ class SearchEngine():
         path = "{}/{}".format(self.save_directory, filename)
         np.save(path, np.packbits(batch.astype(bool)))
                 
-    def load_batch(self, batch_idx):
-        raise NotImplementedError
-        batch = None
-        batch = np.unpackbits(batch)
+    def load_batch(self, filename):
+        path = "{}/{}".format(self.save_directory, filename)
+        batch = np.unpackbits(np.load(path)).astype('float32')
         dims, rows = self.embedding_dimension, len(batch) // self.embedding_dimension
         return batch.reshape(rows, dims)
         

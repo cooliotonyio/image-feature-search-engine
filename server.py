@@ -1,7 +1,13 @@
 import os
 from flask import Flask, flash, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
+# from search import SearchEngine
+from torchvision import transforms
+from datasets import ImageFolder
+import torch
 
+THRESHOLD = 1
+SAVE_DIRECTORY = './binary_embeddings'
 UPLOAD_FOLDER = './queries'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
@@ -62,5 +68,25 @@ def upload_file():
         return html
 
 if __name__ == '__main__':
+    transform = transforms.Compose([
+        transforms.Resize((224,224)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225]),
+    ])
+
+    data = ImageFolder('./Flickr', transform=transform)
+    data_untransformed = ImageFolder('./Flickr')
+    
+    cuda = torch.cuda.is_available()
+    batch_size = 128
+    kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
+    data_loader = torch.utils.data.DataLoader(data, batch_size=batch_size, **kwargs)
+    
+#     search_engine = SearchEngine(cuda = cuda, threshold = THRESHOLD, save_directory = SAVE_DIRECTORY)
+#     search_engine.fit(data_loader = data_loader, load_embeddings = True, verbose = True)
+    
     app.debug = True
-    app.run()
+    app.run(
+        host=os.getenv('LISTEN', '0.0.0.0'),
+        port=int(os.getenv('PORT', '80'))
+    )
