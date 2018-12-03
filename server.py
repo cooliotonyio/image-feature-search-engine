@@ -9,6 +9,7 @@ import torch
 THRESHOLD = 1
 SAVE_DIRECTORY = './binary_embeddings'
 UPLOAD_FOLDER = './queries'
+DATA_FOLDER = './Flickr'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
 app = Flask(__name__)
@@ -21,6 +22,10 @@ def allowed_file(filename):
 @app.route('/queries/<path:filename>')
 def queries(filename):
     return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
+
+@app.route('/Flickr/<path:filename>')
+def data(filename):
+    return send_from_directory(DATA_FOLDER, filename, as_attachment=True)
 
 
 @app.route('/', methods=['GET', 'POST'])
