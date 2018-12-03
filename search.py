@@ -124,7 +124,7 @@ class SearchEngine():
         if verbose:
             print("Median distance: {}".format(np.median(distances)))
             print("Mean distance: {}".format(np.mean(distances)))
-        paths = [data.samples[i][0] for i in idx[0]]
+        paths = [self.data.samples[i][0] for i in idx[0]]
         return distances, paths
 
 
