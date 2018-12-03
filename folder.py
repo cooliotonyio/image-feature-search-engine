@@ -220,3 +220,7 @@ class ImageFolder(DatasetFolder):
         if self.target_transform is not None:
             target = self.target_transform(target)
         return sample, target
+    
+    def get_path(self, index):
+        path, target = self.samples[index]
+        return path

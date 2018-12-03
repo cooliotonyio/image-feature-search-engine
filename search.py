@@ -113,7 +113,7 @@ class SearchEngine():
 
     def transform_query(self, filename):
         image = PIL.Image.open(filename)
-        return self.transform(image)
+        return self.transform(image)[None,:,:,:]
     
     def query(self, filename, n=10, verbose = False):
         tensor = self.transform_query(filename)
