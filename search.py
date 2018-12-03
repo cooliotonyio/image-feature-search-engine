@@ -123,8 +123,8 @@ class SearchEngine():
         if verbose:
             print("Median distance: {}".format(np.median(distances)))
             print("Mean distance: {}".format(np.mean(distances)))
-        return distances, filenames = [data.samples[i][0] for i in idx[0]]
-
+        paths = [data.samples[i][0] for i in idx[0]]
+        return distances, paths
 
 
     def search(self, data, n=5, threshold=None, verbose=False):

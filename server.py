@@ -47,9 +47,9 @@ def upload_file():
                                     filename=filename))
     elif 'filename' in request.args:
         full_filename = os.path.join(app.config['UPLOAD_FOLDER'], request.args['filename'])
-        distances, filenames = search_engine.query(full_filename)
+        distances, paths = search_engine.query(full_filename)
 
-        html_imgs = [f"<img src={filename}" for filename in filenames]
+        html_imgs = [f"<img src={path}" for path in paths]
         html = '''
             <!doctype html>
             <title>Results</title>
