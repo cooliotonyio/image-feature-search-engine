@@ -88,7 +88,7 @@ if __name__ == '__main__':
     search_engine = SearchEngine(data = data, cuda = cuda, threshold = THRESHOLD, save_directory = SAVE_DIRECTORY, transform=transform)
     search_engine.fit(data_loader = data_loader, load_embeddings = True, verbose = True)
 
-    app.debug = True
+    app.debug = False
     app.run(
         host=os.getenv('LISTEN', '0.0.0.0'),
         port=int(os.getenv('PORT', '80'))

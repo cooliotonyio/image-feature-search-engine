@@ -118,7 +118,7 @@ class SearchEngine():
         embedding = self.get_binarized_embedding(tensor, threshold = self.threshold)
     
     def query(self, filename, n=10, verbose = False):
-        embedding = self.get_query_embedding
+        embedding = self.get_query_embedding(filename)
         distances, idx = self.index.search(embedding, n)
         if verbose:
             print("Median distance: {}".format(np.median(distances)))
