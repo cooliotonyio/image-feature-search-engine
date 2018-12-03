@@ -1,7 +1,7 @@
 import os
 from flask import Flask, flash, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
-# from search import SearchEngine
+from search import SearchEngine
 from torchvision import transforms
 from datasets import ImageFolder
 import torch
@@ -76,15 +76,15 @@ if __name__ == '__main__':
 
     data = ImageFolder('./Flickr', transform=transform)
     data_untransformed = ImageFolder('./Flickr')
-    
+
     cuda = torch.cuda.is_available()
     batch_size = 128
     kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
     data_loader = torch.utils.data.DataLoader(data, batch_size=batch_size, **kwargs)
-    
-#     search_engine = SearchEngine(cuda = cuda, threshold = THRESHOLD, save_directory = SAVE_DIRECTORY)
-#     search_engine.fit(data_loader = data_loader, load_embeddings = True, verbose = True)
-    
+
+    search_engine = SearchEngine(cuda = cuda, threshold = THRESHOLD, save_directory = SAVE_DIRECTORY, transform=transform)
+    search_engine.fit(data_loader = data_loader, load_embeddings = True, verbose = True)
+
     app.debug = True
     app.run(
         host=os.getenv('LISTEN', '0.0.0.0'),
