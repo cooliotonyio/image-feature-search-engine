@@ -46,14 +46,18 @@ def upload_file():
             return redirect(url_for('upload_file',
                                     filename=filename))
     elif 'filename' in request.args:
-        filename = request.args['filename']
-        full_filename = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        full_filename = os.path.join(app.config['UPLOAD_FOLDER'], request.args['filename'])
+        distances, filenames = search_engine.query(full_filename)
+
+        html_imgs = [f"<img src={filename}" for filename in filenames]
         html = '''
             <!doctype html>
             <title>Results</title>
-            <h1>Results</h1>
+            <h1>Query</h1>
             <img src="{}"></img>
-            '''.format(full_filename)
+            <h1>Results</h1>
+            {}
+            '''.format(full_filename, " ".join(html_imgs))
         return html
     else:
         html = '''
@@ -75,14 +79,13 @@ if __name__ == '__main__':
     ])
 
     data = ImageFolder('./Flickr', transform=transform)
-    data_untransformed = ImageFolder('./Flickr')
 
     cuda = torch.cuda.is_available()
     batch_size = 128
     kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
     data_loader = torch.utils.data.DataLoader(data, batch_size=batch_size, **kwargs)
 
-    search_engine = SearchEngine(cuda = cuda, threshold = THRESHOLD, save_directory = SAVE_DIRECTORY, transform=transform)
+    search_engine = SearchEngine(data = data, cuda = cuda, threshold = THRESHOLD, save_directory = SAVE_DIRECTORY, transform=transform)
     search_engine.fit(data_loader = data_loader, load_embeddings = True, verbose = True)
 
     app.debug = True

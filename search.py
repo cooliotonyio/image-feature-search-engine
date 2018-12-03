@@ -14,7 +14,7 @@ class SearchEngine():
     By default uses binarized embedding of penultimate layer of pretrained ResNet18
 
     '''
-    def __init__(self, threshold = 1, embedding_net = None, embedding_dimension = 512, cuda = None, transform=None, save_directory = None):
+    def __init__(self, threshold = 1, data = None, embedding_net = None, embedding_dimension = 512, cuda = None, transform=None, save_directory = None):
 
         self.threshold = threshold
         self.embedding_net = embedding_net
@@ -22,6 +22,7 @@ class SearchEngine():
         self.cuda = cuda
         self.save_directory = save_directory
         self.transform = transform
+        self.data = data
 
         # Default to penult embedding layer of pretrained ResNet18
         if self.embedding_net is None:
@@ -111,18 +112,18 @@ class SearchEngine():
         embedding = binarize(embedding, threshold)
         return embedding
 
-    def transform_query(self, filename):
-        image = PIL.Image.open(filename)
-        return self.transform(image)[None,:,:,:]
+    def get_query_embedding(self, filename):
+        image = PIL.Image.open(filename).convert('RGB')
+        tensor = transform(image)[None,:,:,:]
+        embedding = self.get_binarized_embedding(tensor, threshold = self.threshold)
     
     def query(self, filename, n=10, verbose = False):
-        tensor = self.transform_query(filename)
-        embedding = self.get_binarized_embedding(tensor, threshold = self.threshold)
+        embedding = self.get_query_embedding
         distances, idx = self.index.search(embedding, n)
         if verbose:
             print("Median distance: {}".format(np.median(distances)))
             print("Mean distance: {}".format(np.mean(distances)))
-        return distances, idx
+        return distances, filenames = [data.samples[i][0] for i in idx[0]]
 
 
 
