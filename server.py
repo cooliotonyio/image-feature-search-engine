@@ -39,17 +39,13 @@ def upload_file():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            print("woot")
-            print(redirect(url_for('upload_file',
-                                    filename=filename)))
-            print("woota")
             return redirect(url_for('upload_file',
                                     filename=filename))
     elif 'filename' in request.args:
         full_filename = os.path.join(app.config['UPLOAD_FOLDER'], request.args['filename'])
         distances, paths = search_engine.query(full_filename)
-
         html_imgs = [f"<img src={path}" for path in paths]
+        print(paths)
         html = '''
             <!doctype html>
             <title>Results</title>
