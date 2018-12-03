@@ -3,6 +3,7 @@ import numpy as np
 import torchvision.models as models
 from sklearn.preprocessing import binarize
 from networks import ResNet
+import PIL
 import faiss
 
 class SearchEngine():
@@ -12,13 +13,14 @@ class SearchEngine():
     By default uses binarized embedding of penultimate layer of pretrained ResNet18
 
     '''
-    def __init__(self, threshold = 1, embedding_net = None, embedding_dimension = 512, cuda = None, save_directory = None):
+    def __init__(self, threshold = 1, embedding_net = None, embedding_dimension = 512, cuda = None, transform=None, save_directory = None):
 
         self.threshold = threshold
         self.embedding_net = embedding_net
         self.embedding_dimension = embedding_dimension
         self.cuda = cuda
         self.save_directory = save_directory
+        self.transform = transform
 
         # Default to penult embedding layer of pretrained ResNet18
         if self.embedding_net is None:
@@ -53,11 +55,10 @@ class SearchEngine():
         self.index.add(embeddings)
     
     def load_embeddings(self):
-        files = []
-        for idx in range(files):
-            #unpack(file)
-            f = 
-            yield idx, embeddings, None
+        filenames = sorted([filename for filename in os.listdir(self.save_directory) if filename[-3:] == "npy"])
+        for batch_idx in range(len(filenames)):
+            embeddings = self.load_batch(filenames[batch_idx])
+            yield batch_idx, embeddings, None
 
     def fit(self, data_loader, verbose = False, step_size = 100, threshold = None, save_embeddings = False, load_embeddings = False):
         if save_embeddings and not self.save_directory:
@@ -69,7 +70,7 @@ class SearchEngine():
         
         if load_embeddings:
             save_embeddings = False
-            loader = self.load_embeddings():
+            loader = self.load_embeddings()
         else:
             loader = self.featurize_and_binarize_data(data_loader, threshold)
             
@@ -106,6 +107,20 @@ class SearchEngine():
         embedding = self.embedding_net.get_embedding(*data)
         embedding = binarize(embedding, threshold)
         return embedding
+
+    def transform_query(self, filename):
+        image = PIL.Image.open(filename)
+        return self.transform(image)
+    
+    def query(self, filename, n=10, verbose = False):
+        tensor = self.transform_query(filename)
+        embedding = self.get_binarized_embedding(tensor, threshold = threshold)
+        distances, idx = self.index.search(embedding, n)
+        if verbose:
+            print("Median distance: {}".format(np.median(distances)))
+            print("Mean distance: {}".format(np.mean(distances)))
+        return distances, idx
+
 
 
     def search(self, data, n=5, threshold=None, verbose=False):
