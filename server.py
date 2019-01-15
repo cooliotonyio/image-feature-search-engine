@@ -11,6 +11,13 @@ SAVE_DIRECTORY = './binary_embeddings'
 UPLOAD_FOLDER = './queries'
 DATA_FOLDER = './Flickr'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+TRANSFORM = transforms.Compose([
+        transforms.Resize((224,224)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225]),
+    ])
+CUDA = torch.cuda.is_available()
+BATCH_SIZE = 128
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -72,20 +79,12 @@ def upload_file():
         return html
 
 if __name__ == '__main__':
-    transform = transforms.Compose([
-        transforms.Resize((224,224)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225]),
-    ])
 
-    data = ImageFolder('./Flickr', transform=transform)
+    data = ImageFolder('./Flickr', transform=TRANSFORM)
+    kwargs = {'num_workers': 1, 'pin_memory': True} if CUDA else {}
+    data_loader = torch.utils.data.DataLoader(data, batch_size=BATCH_SIZE, **kwargs)
 
-    cuda = torch.cuda.is_available()
-    batch_size = 128
-    kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
-    data_loader = torch.utils.data.DataLoader(data, batch_size=batch_size, **kwargs)
-
-    search_engine = SearchEngine(data = data, cuda = cuda, threshold = THRESHOLD, save_directory = SAVE_DIRECTORY, transform=transform)
+    search_engine = SearchEngine(data, cuda = CUDA, threshold = THRESHOLD, save_directory = SAVE_DIRECTORY, transform=TRANSFORM)
     search_engine.fit(data_loader = data_loader, load_embeddings = True, verbose = True)
 
     app.debug = False
