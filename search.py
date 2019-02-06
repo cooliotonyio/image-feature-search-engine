@@ -1,11 +1,13 @@
 import torch
 import numpy as np
-from torchvision import transforms, models
-from sklearn.preprocessing import binarize
-from networks import ResNet
 import PIL
-import faiss
 import os
+import faiss
+import time
+from torchvision import transforms
+from sklearn.preprocessing import binarize
+
+from networks import ResNet
 
 class SearchEngine():
     '''
@@ -67,6 +69,9 @@ class SearchEngine():
             yield batch_idx, embeddings
 
     def fit(self, data_loader=None, verbose = False, step_size = 100, threshold = None, save_embeddings = False, load_embeddings = False):
+        
+        start_time = time.time()
+
         if save_embeddings and not self.save_directory:
             print("Need to set save_directory of SearchEngine")
             return
@@ -94,7 +99,8 @@ class SearchEngine():
                 self.save_batch(embeddings, filename)
             self.update_index(embeddings)
         if verbose:
-            print("Finished fitting data.")
+            time_elapsed = time.time()
+            print("Finished fitting data in {} seconds.".format(round(time_elapsed, 4)))
         
     def save_batch(self, batch, filename):
         path = "{}/{}".format(self.save_directory, filename)
