@@ -3,7 +3,7 @@ from flask import Flask, flash, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 from search import SearchEngine
 from torchvision import transforms
-from datasets import ImageFolder
+from folder import ImageFolder
 import torch
 
 THRESHOLD = 1
