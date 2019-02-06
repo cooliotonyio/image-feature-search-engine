@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-import torchvision.models as models
+from torchvision import transforms, models
 from sklearn.preprocessing import binarize
 from networks import ResNet
 import PIL
@@ -14,18 +14,27 @@ class SearchEngine():
     By default uses binarized embedding of penultimate layer of pretrained ResNet18
 
     '''
-    def __init__(self, threshold = 1, data = None, embedding_net = None, embedding_dimension = 512, cuda = None, transform=None, save_directory = None):
-
+    def __init__(self, data, threshold = 1, embedding_net = None, embedding_dimension = 512, cuda = None, transform=None, save_directory = None):
+        
+        self.data = data
+    
         self.threshold = threshold
         self.embedding_net = embedding_net
         self.embedding_dimension = embedding_dimension
         self.cuda = cuda
         self.save_directory = save_directory
         self.transform = transform
-        self.data = data
 
+        if self.transform is None:
+            print("Transform was not specified. Using default value")
+            self.transform = transforms.Compose([
+                transforms.Resize((224,224)),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225]),
+            ])
         # Default to penult embedding layer of pretrained ResNet18
         if self.embedding_net is None:
+            print("Embedding Net was not specified. Using default value")
             self.embedding_net = ResNet()
         
         # Initialize index
@@ -34,23 +43,19 @@ class SearchEngine():
         # GPU acceleration of net and index
         if self.cuda:
             self.embedding_net.cuda()
-
             res = faiss.StandardGpuResources()
             self.index = faiss.index_cpu_to_gpu(res, 0, self.index)
 
 
     def featurize_and_binarize_data(self, data_loader, threshold):
         for batch_idx, (data, target) in enumerate(data_loader):
-            target = target if len(target) > 0 else None
             if not type(data) in (tuple, list):
                 data = (data,)
             if self.cuda:
                 data = tuple(d.cuda() for d in data)
-                if target is not None:
-                    target = target.cuda()
             embeddings = self.embedding_net.get_embedding(*data)
             embeddings = binarize(embeddings, threshold=threshold)
-            yield batch_idx, embeddings, target
+            yield batch_idx, embeddings
     
     def update_index(self, embeddings):
         assert self.index.is_trained
@@ -60,7 +65,7 @@ class SearchEngine():
         filenames = sorted([filename for filename in os.listdir(self.save_directory) if filename[-3:] == "npy"])
         for batch_idx in range(len(filenames)):
             embeddings = self.load_batch(filenames[batch_idx])
-            yield batch_idx, embeddings, None
+            yield batch_idx, embeddings
 
     def fit(self, data_loader=None, verbose = False, step_size = 100, threshold = None, save_embeddings = False, load_embeddings = False):
         if save_embeddings and not self.save_directory:
@@ -75,14 +80,14 @@ class SearchEngine():
             loader = self.load_embeddings()
         else:
             if not data_loader:
-                print("Need to provide data_loader")
+                print("Data Loader not provided")
                 return
             loader = self.featurize_and_binarize_data(data_loader, threshold)
             
         num_batches = len(data_loader)
         batch_magnitude = len(str(num_batches))
 
-        for batch_idx, embeddings, target in loader:
+        for batch_idx, embeddings in loader:
             if verbose and not (batch_idx % step_size):
                 print("Batch {} of {}".format(batch_idx, num_batches))
             if save_embeddings:
