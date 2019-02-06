@@ -99,7 +99,7 @@ class SearchEngine():
                 self.save_batch(embeddings, filename)
             self.update_index(embeddings)
         if verbose:
-            time_elapsed = time.time()
+            time_elapsed = time.time() - start_time
             print("Finished fitting data in {} seconds.".format(round(time_elapsed, 4)))
         
     def save_batch(self, batch, filename):
