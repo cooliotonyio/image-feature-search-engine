@@ -17,7 +17,6 @@ class SearchEngine():
     def __init__(self, data, threshold = 1, embedding_net = None, embedding_dimension = 512, cuda = None, transform=None, save_directory = None):
         
         self.data = data
-    
         self.threshold = threshold
         self.embedding_net = embedding_net
         self.embedding_dimension = embedding_dimension
@@ -43,8 +42,8 @@ class SearchEngine():
         # GPU acceleration of net and index
         if self.cuda:
             self.embedding_net.cuda()
-            res = faiss.StandardGpuResources()
-            self.index = faiss.index_cpu_to_gpu(res, 0, self.index)
+#             res = faiss.StandardGpuResources()
+#             self.index = faiss.index_cpu_to_gpu(res, 0, self.index)
 
 
     def featurize_and_binarize_data(self, data_loader, threshold):
