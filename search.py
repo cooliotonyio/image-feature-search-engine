@@ -141,14 +141,17 @@ class SearchEngine():
     def search(self, data, n=5, threshold=None, verbose=False):
         if threshold is None:
             threshold = self.threshold
-
+            
+        start_time = time.time()
         embedding = self.get_binarized_embedding(data, threshold = self.threshold)
         distances, idx = self.index.search(embedding, n)
+        elapsed_time = time.time() - start_time
             
         if verbose:
             print("Median distance: {}".format(np.median(distances)))
             print("Mean distance: {}".format(np.mean(distances)))
-        
+            print("Time elapsed: {}".format(round(elapsed_time, 5)))
+            
         return distances, idx
         
     def search_and_display(self, ):
