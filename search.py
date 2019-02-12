@@ -15,6 +15,8 @@ class SearchEngine():
     
     By default uses binarized embedding of penultimate layer of pretrained ResNet18
 
+    ResNet 152-D
+
     '''
     def __init__(self, data, threshold = 1, embedding_net = None, embedding_dimension = 512, cuda = None, transform=None, save_directory = None):
         
@@ -100,7 +102,7 @@ class SearchEngine():
             self.update_index(embeddings)
         if verbose:
             time_elapsed = time.time() - start_time
-            print("Finished fitting data in {} seconds.".format(round(time_elapsed, 4)))
+            print("Finished building index in {} seconds.".format(round(time_elapsed, 4)))
         
     def save_batch(self, batch, filename):
         path = "{}/{}".format(self.save_directory, filename)
@@ -111,13 +113,14 @@ class SearchEngine():
         batch = np.unpackbits(np.load(path)).astype('float32')
         dims, rows = self.embedding_dimension, len(batch) // self.embedding_dimension
         return batch.reshape(rows, dims)
-        
 
     def get_binarized_embedding(self, data, threshold):
         if not type(data) in (tuple, list):
             data = (data,)
+
         if self.cuda:
             data = tuple(d.cuda() for d in data)
+
         embedding = self.embedding_net.get_embedding(*data)
         embedding = binarize(embedding, threshold)
         return embedding
@@ -137,21 +140,20 @@ class SearchEngine():
         paths = [self.data.samples[i][0] for i in idx[0]]
         return distances, paths
 
-
     def search(self, data, n=5, threshold=None, verbose=False):
         if threshold is None:
             threshold = self.threshold
 
         embedding = self.get_binarized_embedding(data, threshold = self.threshold)
         distances, idx = self.index.search(embedding, n)
-            
+        
         if verbose:
             print("Median distance: {}".format(np.median(distances)))
             print("Mean distance: {}".format(np.mean(distances)))
         
         return distances, idx
         
-    def search_and_display(self, ):
+    def search_and_display(self):
         pass
         
         # plt.figure()
