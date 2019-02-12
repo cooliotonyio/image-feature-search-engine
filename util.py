@@ -33,6 +33,13 @@ def fetch_and_cache(data_url, file, data_dir="data", force=False):
     return file_path
 
 def load_vectors(fname):
+    """
+    Load the vectors and return a dictionary
+    
+    fname: filename of vectors
+    
+    return: dictionary with words as keys and tensors as values
+    """
     fin = io.open(fname, 'r', encoding='utf-8', newline = '/n', errors='ignore')
     n, d = map(int, fin.readline().split())
     data = {}
