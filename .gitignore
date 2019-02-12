@@ -1,8 +1,8 @@
 __pycache__
 *.tar.gz
+*.zip
+Flickr/
+*.vec
 .ipynb_checkpoints
 queries/
 *.pyc
-Flickr/
-binary_embeddings
-

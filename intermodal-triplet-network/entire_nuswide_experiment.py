@@ -1,6 +1,6 @@
 import csv
 from torchvision import transforms
-from datasets_batched import NUS_WIDE
+from datasets import NUS_WIDE
 import torchvision as tv
 
 import pickle
@@ -10,7 +10,7 @@ from torch.optim import lr_scheduler
 import torch.optim as optim
 from torch.autograd import Variable
 
-from trainer_batched import fit
+from trainer import fit
 import numpy as np
 
 cuda = torch.cuda.is_available()
