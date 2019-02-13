@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 mean, std = (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
 
 print("Loading NUS_WIDE dataset...")
-data_path = 'NUS_WIDE'
+data_path = '../data/Flickr'
 dataset = NUS_WIDE(root=data_path,
     transform=transforms.Compose([tv.transforms.Resize((224,224)), transforms.ToTensor(),
                                  transforms.Normalize(mean,std)]))
