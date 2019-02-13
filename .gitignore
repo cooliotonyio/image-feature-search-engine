@@ -1,8 +1,5 @@
 __pycache__
-*.tar.gz
-*.zip
-Flickr/
-*.vec
+raw_data/
+data/
 .ipynb_checkpoints
-queries/
 *.pyc
