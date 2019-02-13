@@ -48,7 +48,7 @@ class NUS_WIDE(Dataset):
             for count, indicator in enumerate(line.split(' ')):
                 if indicator != '\n' and int(indicator) == 1:
                     concepts.append(idx_to_concept[count])
-            concept_list[idx] = concepts
+            self.concept_list[idx] = concepts
 
 
     def init_tag_matrix(self):
